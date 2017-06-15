@@ -1,0 +1,19 @@
+{
+  "name": "taas-bot",
+  "version": "1.0.0",
+  "description": "This is a one-function to watch different blockchain operations via API and post it to Telegram-bot.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TAAS-fund/taas-bot.git"
+  },
+  "author": "taas-bot",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TAAS-fund/taas-bot/issues"
+  },
+  "homepage": "https://github.com/TAAS-fund/taas-bot#readme"
+}
