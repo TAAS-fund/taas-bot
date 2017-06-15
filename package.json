@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/TAAS-fund/taas-bot/issues"
   },
-  "homepage": "https://github.com/TAAS-fund/taas-bot#readme"
+  "homepage": "https://github.com/TAAS-fund/taas-bot#readme",
+  "dependencies": {
+    "http": "0.0.0",
+    "node-telegram-bot-api": "^0.27.1"
+  }
 }
