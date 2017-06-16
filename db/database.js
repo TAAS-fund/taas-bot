@@ -2,17 +2,10 @@
  * Created by hlib on 6/16/17.
  */
 const pg = require('pg'); //postgres DB
+const getConfig = require('config');
+const config = getConfig.get('User.dbConfig');
 
 //Config DB connection
-var config = {
-    user: 'admin',
-    database: 'botConnections',
-    password: 'qwerty12345',
-    host: 'localhost',
-    port: 5432,
-    max: 10,
-    idleTimeoutMillis: 30000
-};
 
 const pool = new pg.Pool(config);
 

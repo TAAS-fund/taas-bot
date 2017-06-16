@@ -10,13 +10,14 @@
     "type": "git",
     "url": "git+https://github.com/TAAS-fund/taas-bot.git"
   },
-  "author": "taas-bot",
+  "author": "taas-dev",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/TAAS-fund/taas-bot/issues"
   },
   "homepage": "https://github.com/TAAS-fund/taas-bot#readme",
   "dependencies": {
+    "config": "^1.26.1",
     "http": "0.0.0",
     "node-telegram-bot-api": "^0.27.1",
     "pg": "^6.2.4",
