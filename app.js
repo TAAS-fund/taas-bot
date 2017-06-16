@@ -14,13 +14,6 @@ const TelegramBot = require('node-telegram-bot-api');
 const token = getConfig.get('User.Telegram-bot.token');
 const bot = new TelegramBot(token, {polling: true});
 
-//API requests options
-const options = {
-    host: "api.blockcypher.com",
-    path: "/v1/eth/main/addrs/",
-    address: ""
-};
-
 //Standart TaaS-Bot messages
 const messages = getConfig.get('User.Bot-messages');
 
