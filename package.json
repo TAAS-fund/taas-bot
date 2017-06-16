@@ -18,6 +18,8 @@
   "homepage": "https://github.com/TAAS-fund/taas-bot#readme",
   "dependencies": {
     "http": "0.0.0",
-    "node-telegram-bot-api": "^0.27.1"
+    "node-telegram-bot-api": "^0.27.1",
+    "pg": "^6.2.4",
+    "request": "^2.81.0"
   }
 }
