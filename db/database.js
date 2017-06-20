@@ -1,9 +1,8 @@
 const pg = require('pg'); //postgres DB
 const getConfig = require('config');
-const config = getConfig.get('User.dbConfig');
+const config = getConfig.get('Users.dbConfig');
 
 //Config DB connection
-
 const pool = new pg.Pool(config);
 
 pool.on('error', function (err, client) {
