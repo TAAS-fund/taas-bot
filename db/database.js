@@ -1,6 +1,3 @@
-/**
- * Created by hlib on 6/16/17.
- */
 const pg = require('pg'); //postgres DB
 const getConfig = require('config');
 const config = getConfig.get('User.dbConfig');
