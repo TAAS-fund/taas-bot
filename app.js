@@ -1,7 +1,7 @@
 const request = require('request');
 const config = require('config');
 
-const blockcypherAPI = config.get('BlockCypherAPI');
+const blockcypherAPI = config.get('API.BlockCypher');
 const confirmation = config.get('AddressConfirmation');
 
 const TelegramBot = require('node-telegram-bot-api');
@@ -22,7 +22,7 @@ bot.onText(/([/]create)/, function(msg, match){
     const chat = msg.chat.id;
     bot.sendMessage(chat, messages.newFollow.start);
     
-    bot.onText(/(.{40})/, function(msg, match){
+    bot.onText(/(.{40,50})/, function(msg, match){
         const address = match[0];
 
         //TODO: Check `address` for responce
