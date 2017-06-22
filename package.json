@@ -1,27 +1,17 @@
 {
   "name": "taas-bot",
   "version": "1.0.0",
-  "description": "This is a one-function to watch different blockchain operations via API and post it to Telegram-bot.",
+  "description": "Bot to save subscriptions to sertain ETH wallets",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TAAS-fund/taas-bot.git"
-  },
-  "author": "taas-dev",
+  "author": "taas",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/TAAS-fund/taas-bot/issues"
-  },
-  "homepage": "https://github.com/TAAS-fund/taas-bot#readme",
   "dependencies": {
     "config": "^1.26.1",
-    "http": "0.0.0",
     "node-telegram-bot-api": "^0.27.1",
-    "pg": "^6.2.4",
-    "pg-promise": "^5.9.3",
+    "regex": "^0.1.1",
     "request": "^2.81.0"
   }
 }
