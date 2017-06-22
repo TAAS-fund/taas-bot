@@ -3,15 +3,18 @@ const config = require('config');
 
 const TelegramBot = require('node-telegram-bot-api');
 const token = config.get('Telegram-bot.token');
-const bot = new TelegramBot(token, { polling:true });
+const bot = new TelegramBot(token, { polling: true });
 
 const commands = config.get('commands');
 const botDialog = config.get('Bot-messages');
+const blockCypher = config.get('API.BlockCypher');
+const api = blockCypher.host + blockCypher.path;
 
 const commandList = {
     start: createRegExp(commands.start),
     create: createRegExp(commands.create),
-    delete: createRegExp(commands.delete)
+    delete: createRegExp(commands.delete),
+    addressConfirm: createRegExp(commands.addressConfirm)
 };
 
 //TODO: Create session for user
@@ -28,8 +31,19 @@ function createRegExp(arg) {
 bot.on('message', function(msg){
     const chat = msg.chat.id;
     const user = msg.chat.username;
-    
-    //greeteings(chat);
+
+    let message = msg.text;
+    let address;
+    let name;
+
+    if(typeof msg.entities != "undefined" && commandList.start.test(message)) greetings(chat);
+    if(typeof msg.entities != "undefined" && commandList.create.test(message)) startNewSubscription(chat);
+    if(commandList.addressConfirm.test(message) && typeof msg.entities == "undefined"){
+        checkAddress(chat, message, api);
+    } else {
+        bot.sendMessage(chat, "Some text")
+    }
+    // console.log(msg.entities);
 });
 
 //Passed => TRUE
@@ -45,23 +59,34 @@ bot.on('message', function(msg){
 //End of testing section
 //TODO: Match inputs of bot with 'commandList' and link them on scenario
 
+
+/*
+    Dev part of bot/botfunctions.js
+    All code below should be pasted to bot/* or other logic distribution by functionality
+    Or not
+    Decigion required
+*/
+
+//TODO: Saving user data
 function createUser(id, user) {
 
 }
 
-function greeteings(id) {
+//Greeting new user
+function greetings(id) {
     bot.sendMessage(id, botDialog.greetings);
 }
 
+//Called in case of `/start` bot-command || initializing new subscription process
 function startNewSubscription(id){
-    bot.sendMessage(id, botDialog.startSubscription);
+    bot.sendMessage(id, botDialog.startNewSubscription);
 }
 
+//Checking the input of ETH wallet for it's existing in Etherium blockchain
 function checkAddress(id, address, api){
      request(api+address, function (err,resp) {
         if(!err && resp.statusCode == 200){
             bot.sendMessage(id, botDialog.addressApproved);
-            return address;
         } else{
             bot.sendMessage(id, botDialog.addressDeclined);
             startNewSubscription(id)
@@ -69,6 +94,7 @@ function checkAddress(id, address, api){
      });
 }
 
+//Checking the name with RegExp (*rulles in development)
 function inputName(id, msg){
     const pattern = new RegExp(rules.nameRule);
     const name = msg.text;
@@ -81,6 +107,7 @@ function inputName(id, msg){
     }
 }
 
+//Subscription confirmation logic || finalization of user subscription to ETH wallet
 function confirmation(id, name, address, msg){
     const pattern = new RegExp(rules.confirmationRule);
     const confirnmation = msg.text;
@@ -94,7 +121,7 @@ function confirmation(id, name, address, msg){
 }
 
 
-
+//
 //TODO: After matching create special words for `greetingScenario`, `createSubscriptionScenario` and `deletingScenario`
 
 // bot.on('message', function (msg) {
@@ -104,4 +131,3 @@ function confirmation(id, name, address, msg){
 //     }
 //
 // });
-
