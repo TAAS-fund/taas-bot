@@ -14,7 +14,8 @@ const commandList = {
     start: createRegExp(commands.start),
     create: createRegExp(commands.create),
     delete: createRegExp(commands.delete),
-    addressConfirm: createRegExp(commands.addressConfirm)
+    addressValidate: createRegExp(commands.addressValidate),
+    nameValidate: createRegExp(commands.nameValidate)
 };
 
 //TODO: Create session for user
@@ -27,7 +28,7 @@ function createRegExp(arg) {
 }
 
 //Testing section
-
+let client;
 let address;
 let name;
 
@@ -40,18 +41,43 @@ bot.on('message', function(msg){
     if(typeof msg.entities != "undefined" && commandList.start.test(message)) greetings(chat);
     if(typeof msg.entities != "undefined" && commandList.create.test(message)) startNewSubscription(chat);
     
-    if(commandList.addressConfirm.test(message)){
+    if(commandList.addressValidate.test(message)){
         request(api+message, function (err,resp) {
             if(!err && resp.statusCode == 200){
                 address = message;
-                bot.sendMessage(chat, "OK");
+                bot.sendMessage(chat, "Address valide!\n\nPlease input the name of your wallet subscription.");
             } else{
-                bot.sendMessage(chat, "NOT OK");
-                startNewSubscription(chat)
+                bot.sendMessage(chat, "Address not valide!\n\nCheck your address and try again with \/create command&");
             }
         });
     }
+
+    if(typeof address != "undefined"){
+        const pattern = commandList.nameValidate;
+
+        if(pattern.test(message)){
+            name = message
+            bot.sendMessage(chat, "Name valide!");
+            //bot.sendMessage(id, botDialog.nameApproved);
+        } else {
+            bot.sendMessage(chat, "Name not valide, try again!");
+            //bot.sendMessage(id, botDialog.nameDeclined);
+        }
+    }
     
+    if(typeof address != "undefined" && typeof name != "undefined"){
+        client = {
+            firstName: msg.chat.last_name,
+            lastname: msg.chat.first_name,
+            chatId: chat,
+            subcriptions:{
+                name: name,
+                address: address
+            }
+        }
+
+        bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!")
+    }
 });
 
 //Passed => TRUE
@@ -103,13 +129,12 @@ function checkAddress(id, address, api){
 }
 
 //Checking the name with RegExp (*rulles in development)
-function inputName(id, msg){
-    const pattern = new RegExp(rules.nameRule);
-    const name = msg.text;
+function inputName(id, msg, name){
+    const pattern = createRegExp(commandList.nameValidate);
 
     if(patten.test(name)){
         bot.sendMessage(id, botDialog.nameApproved);
-        return name;
+        //bot.sendMessage(id, botDialog.nameApproved);
     } else {
         bot.sendMessage(id, botDialog.nameDeclined);
     }
@@ -128,14 +153,3 @@ function confirmation(id, name, address, msg){
     }
 }
 
-
-//
-//TODO: After matching create special words for `greetingScenario`, `createSubscriptionScenario` and `deletingScenario`
-
-// bot.on('message', function (msg) {
-//     const chatid = msg.chat.id;
-//     if(commandList.start.test("/start") == msg.text){
-//          bot.sendMessage(chatid, )
-//     }
-//
-// });
