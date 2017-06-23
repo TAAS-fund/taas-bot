@@ -28,22 +28,30 @@ function createRegExp(arg) {
 
 //Testing section
 
+let address;
+let name;
+
 bot.on('message', function(msg){
     const chat = msg.chat.id;
     const user = msg.chat.username;
 
     let message = msg.text;
-    let address;
-    let name;
 
     if(typeof msg.entities != "undefined" && commandList.start.test(message)) greetings(chat);
     if(typeof msg.entities != "undefined" && commandList.create.test(message)) startNewSubscription(chat);
-    if(commandList.addressConfirm.test(message) && typeof msg.entities == "undefined"){
-        checkAddress(chat, message, api);
-    } else {
-        bot.sendMessage(chat, "Some text")
+    
+    if(commandList.addressConfirm.test(message)){
+        request(api+message, function (err,resp) {
+            if(!err && resp.statusCode == 200){
+                address = message;
+                bot.sendMessage(chat, "OK");
+            } else{
+                bot.sendMessage(chat, "NOT OK");
+                startNewSubscription(chat)
+            }
+        });
     }
-    // console.log(msg.entities);
+    
 });
 
 //Passed => TRUE
@@ -53,7 +61,7 @@ console.log("\"delete\" RegExp:",commandList.delete.test("/delete"));
 
 //Definig the data of the message
 bot.on('message', function(msg){
-    console.log(msg);
+    //console.log(msg);
 });
 
 //End of testing section
