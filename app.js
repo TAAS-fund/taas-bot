@@ -18,6 +18,10 @@ const commandList = {
     nameValidate: createRegExp(commands.nameValidate)
 };
 
+let client;
+let address;
+let name;
+
 //TODO: Create session for user
 
 //
@@ -28,9 +32,6 @@ function createRegExp(arg) {
 }
 
 //Testing section
-let client;
-let address;
-let name;
 
 bot.on('message', function(msg){
     const chat = msg.chat.id;
@@ -102,7 +103,7 @@ bot.on('message', function(msg){
 */
 
 //TODO: Saving user data
-function createUser(id, user) {
+function createUser(user) {
 
 }
 
