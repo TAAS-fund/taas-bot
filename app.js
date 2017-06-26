@@ -1,6 +1,6 @@
 const request = require('request');
 const config = require('config');
-
+const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const token = config.get('Telegram-bot.token');
 const bot = new TelegramBot(token, { polling: true });
@@ -21,6 +21,8 @@ const commandList = {
 let client;
 let address;
 let name;
+
+let req_res = [];
 
 //TODO: Create session for user
 
@@ -43,9 +45,24 @@ bot.on('message', function(msg){
     if(typeof msg.entities != "undefined" && commandList.create.test(message)) startNewSubscription(chat);
     
     if(commandList.addressValidate.test(message)){
-        request(api+message, function (err,resp) {
+        request(api+message, function (err,resp, body) {
             if(!err && resp.statusCode == 200){
+                let info = JSON.parse(body);
+                let trans = info.txrefs;
+                
+                for (i in trans){
+                    if (trans[i].tx_input_n == 0){
+                        req_res.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
+                    }else{
+                        req_res.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
+                    }
+                }
+
                 address = message;
+
+                console.log(req_res[0]);
+                console.log(req_res[1]);
+
                 bot.sendMessage(chat, "Address valide!\n\nPlease input the name of your wallet subscription.");
             } else{
                 bot.sendMessage(chat, "Address not valide!\n\nCheck your address and try again with \/create command&");
@@ -67,9 +84,10 @@ bot.on('message', function(msg){
     }
     
     if(typeof address != "undefined" && typeof name != "undefined"){
+
         client = {
             firstName: msg.chat.last_name,
-            lastname: msg.chat.first_name,
+            lastName: msg.chat.first_name,
             chatId: chat,
             subcriptions:{
                 name: name,
@@ -77,7 +95,25 @@ bot.on('message', function(msg){
             }
         }
 
-        bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!")
+        bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!");
+
+        fs.readFile('users.json', 'utf8', function readFileCallback(err, data) {
+           if(err){
+               console.log(err);
+           } else {
+               obj = JSON.parse(data);
+               for (each in obj.users){
+                   if(typeof obj.users[each].firstName != "undefined" && obj.users[each].chatId == client.chatId){
+                       obj.users.push({subcriptions: { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } } );
+                   } else {
+                       obj.users.push({firstName: client.firstName, lastName: client.lastName, chatId: client.chatId, subcriptions: { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } } );
+                   }
+               }
+                              
+               json = JSON.stringify(obj);
+               fs.writeFile('users.json', json, 'utf8');
+           }
+        });
     }
 });
 
