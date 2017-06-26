@@ -109,7 +109,6 @@ bot.on('message', function(msg){
                        obj.users.push({firstName: client.firstName, lastName: client.lastName, chatId: client.chatId, subcriptions: { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } } );
                    }
                }
-                              
                json = JSON.stringify(obj);
                fs.writeFile('users.json', json, 'utf8');
            }
