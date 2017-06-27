@@ -18,11 +18,19 @@ const commandList = {
     nameValidate: createRegExp(commands.nameValidate)
 };
 
+//Creating Client --> should be represented as session
 let client;
+
+//Creating Address of Subscribtion
 let address;
+
+//Creating Name of Subscription
 let name;
 
+//Creating List of respond data Object about transaction
 let req_res = [];
+
+//Creating List of Subscribtion Object
 let subscriptions = [];
 
 //TODO: Create session for user
@@ -93,6 +101,7 @@ bot.on('message', function(msg){
             subcriptions:{
                 name: name,
                 address: address
+                last: req_res[0]
             }
         }
 
@@ -143,6 +152,7 @@ bot.on('message', function(msg){
            }
         });
     }
+
 });
 //TODO: Notification logic
 //Notification logic
@@ -154,7 +164,6 @@ bot.on('message', function(msg){
 //     } else {
 //         json_data = JSON.parse(data);
 // });
-
 
 //Passed => TRUE
 
