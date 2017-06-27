@@ -102,11 +102,14 @@ bot.on('message', function(msg){
                console.log(err);
            } else {
                obj = JSON.parse(data);
-               for (each in obj.users){
-                   if(typeof obj.users[each].firstName != "undefined" && obj.users[each].chatId == client.chatId){
-                       obj.users.push({subcriptions: { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } } );
+
+               console.log(obj);
+
+               for(i in obj.users){
+                   if(obj.users[i].firstName == client.firstName && obj.users[i].chatId){
+                       obj.users[i].subcriptions.push( { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } );
                    } else {
-                       obj.users.push({firstName: client.firstName, lastName: client.lastName, chatId: client.chatId, subcriptions: { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } } );
+                       obj.users.push({firstName: client.firstName, lastName: client.lastName, chatId: client.chatId, subcriptions:[{ name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] }]} );
                    }
                }
                json = JSON.stringify(obj);
@@ -115,7 +118,34 @@ bot.on('message', function(msg){
         });
     }
 });
+//TODO: Notification logic
+//Notification logic
+fs.readFile('users.json', 'utf8', function(readFileCallback(err, data)){
+    if (err){
+        console.log(err);
+    } else {
+        obj = JSON.parse(data);
+        for(i in obj.users){
+            address = obj.users[i].subcriptions[i].address;
+            request(api+address, function(err, res, body){
+                if(!err && resp.statusCode == 200){
 
+                    let response = [];
+                    let info = JSON.parse(body);
+                    let trans = info.txrefs;
+
+                    for (i in trans){
+                        if (trans[i].tx_input_n == 0){
+                            response.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
+                        }else{
+                            response.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
+                        }
+                    }
+                });
+            });
+        }
+    }
+});
 //Passed => TRUE
 console.log("\"create\" RegExp:",commandList.create.test("/create"));//Testing regexp
 console.log("\"start\" RegExp:",commandList.start.test("/start"));
