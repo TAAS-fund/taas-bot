@@ -23,6 +23,7 @@ let address;
 let name;
 
 let req_res = [];
+let subscriptions = [];
 
 //TODO: Create session for user
 
@@ -97,23 +98,48 @@ bot.on('message', function(msg){
 
         bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!");
 
+        subscriptions.push({
+            name: client.subcriptions.name,
+            address: client.subcriptions.address,
+            last: req_res[0]
+        });
+
+        console.log(subscriptions);
+
         fs.readFile('users.json', 'utf8', function readFileCallback(err, data) {
            if(err){
+               
                console.log(err);
+               
            } else {
+               
                obj = JSON.parse(data);
 
                console.log(obj);
 
-               for(i in obj.users){
-                   if(obj.users[i].firstName == client.firstName && obj.users[i].chatId){
-                       obj.users[i].subcriptions.push( { name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] } );
-                   } else {
-                       obj.users.push({firstName: client.firstName, lastName: client.lastName, chatId: client.chatId, subcriptions:[{ name: client.subcriptions.name, address: client.subcriptions.address, last: req_res[0] }]} );
+               if(typeof obj.users[0] == "undefined"){
+                   obj.users.push({
+                       firstName: client.firstName,
+                       lastName: client.lastName,
+                       chatId: client.chatId,
+                       subcriptions: subscriptions
+                   });
+               } else {
+                   for(i in obj.users) {
+                       if (obj.users[i].firstName == client.firstName && obj.users[i].chatId) {
+                           obj.users[i].subcriptions.push({
+                               name: client.subcriptions.name,
+                               address: client.subcriptions.address,
+                               last: req_res[0]
+                           });
+                       }
                    }
                }
+
                json = JSON.stringify(obj);
+               console.log(json);
                fs.writeFile('users.json', json, 'utf8');
+               
            }
         });
     }
@@ -121,13 +147,13 @@ bot.on('message', function(msg){
 //TODO: Notification logic
 //Notification logic
 
-let json_data;
-fs.readFile('users.json', 'utf8', function(readFileCallback(err, data)){
-    if (err){
-        console.log(err);
-    } else {
-        json_data = JSON.parse(data);
-});
+// let json_data;
+// fs.readFile('users.json', 'utf8', function(readFileCallback(err, data)){
+//     if (err){
+//         console.log(err);
+//     } else {
+//         json_data = JSON.parse(data);
+// });
 
 
 //Passed => TRUE
