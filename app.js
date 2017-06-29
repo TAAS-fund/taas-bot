@@ -49,17 +49,17 @@ function createRegExp(arg) {
 bot.on('message', function(msg){
     const chat = msg.chat.id;
     const message = msg.text;
-
+    
+    //Dubugging data manipulations
     console.log("Address of wallet:",address);
     console.log("Name of subscription:",name);
     console.log("Client scheme:",client);
     console.log("Validation mark:", validate);
 
-    client = 'undefined';
-
-    if(typeof msg.entities != "undefined" && commandList.start.test(message)){greetings(chat);}
-    if(typeof msg.entities != "undefined" && commandList.create.test(message)){startNewSubscription(chat);}
+    if(typeof msg.entities != "undefined" && commandList.start.test(message)){greetings(chat);} // `/start` command 
+    if(typeof msg.entities != "undefined" && commandList.create.test(message)){startNewSubscription(chat);} // `/create` command
     
+    //Checking address 
     if(commandList.addressValidate.test(message)){
         request(api+message, function (err,resp, body) {
             if(!err && resp.statusCode == 200){
@@ -74,25 +74,23 @@ bot.on('message', function(msg){
                         req_res.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
                     }
                 }
-
                 address = message;
-                validate = true;
                 console.log("Last trx:",req_res[0]);
 
                 bot.sendMessage(chat, "Address valide!\n\nPlease input the name of your wallet subscription.");
+                //Turning on validation process
+                validate = true;
             } else{
                 bot.sendMessage(chat, "Address not valide!\n\nCheck your address and try again with \/create command&");
             }
         });
     }
-
+    
+    //Checking name && creating work object
     if(typeof address != "undefined" && validate === true){
         const pattern = commandList.nameValidate;
         if(pattern.test(message)){
-
             name = message
-            //bot.sendMessage(id, botDialog.nameApproved);
-            
             client = {
                 firstName: msg.chat.last_name,
                 lastName: msg.chat.first_name,
@@ -103,7 +101,7 @@ bot.on('message', function(msg){
                     last: req_res[0]
                 }
             }
-
+            //Clearing usless data
             address = 'undefined';
             name = 'undefined';
         } else {
@@ -112,14 +110,15 @@ bot.on('message', function(msg){
         }
     }
     
+    //Structurizing && saving data
     if(typeof client != "undefined" && validate == true){
-        validate = false;
         fs.readFile('users.json', 'utf8', function readFileCallback(err, data) {
+           validate = false;
            if(err){
                console.log(err);
            } else {
                bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!");
-
+               //Creating subscription list
                subscriptions.push({
                    name: client.subcriptions.name,
                    address: client.subcriptions.address,
@@ -129,15 +128,15 @@ bot.on('message', function(msg){
                obj = JSON.parse(data);
 
                if(typeof obj.users[0] == "undefined"){
+                   //Pushing new user and subscribtion 
                    obj.users.push({
                        firstName: client.firstName,
                        lastName: client.lastName,
                        chatId: client.chatId,
                        subcriptions: subscriptions
                    });
-
-
                } else {
+                   //Pushing new subscription if user exists
                    for(i in obj.users) {
                        if (obj.users[i].firstName == client.firstName && obj.users[i].chatId) {
                            obj.users[i].subcriptions.push({
@@ -147,11 +146,12 @@ bot.on('message', function(msg){
                            });
                        }
                    }
+                   //Clearing usless data 
+                   client = 'undefined';
+                   req_res = [];
+                   subscriptions = [];
                    console.log("Client scheme:",client);
                }
-
-               console.log("Last message that was inputed to the dialog:",message);
-
                json = JSON.stringify(obj);
                console.log(json);
                fs.writeFile('users.json', json, 'utf8');
@@ -170,14 +170,6 @@ bot.on('message', function(msg){
 //         json_data = JSON.parse(data);
 // });
 
-//Passed => TRUE
-
-console.log("\"create\" RegExp:",commandList.create.test("/create"));//Testing regexp
-console.log("\"start\" RegExp:",commandList.start.test("/start"));
-console.log("\"delete\" RegExp:",commandList.delete.test("/delete"));
-
-//End of testing section
-//TODO: Match inputs of bot with 'commandList' and link them on scenario
 
 /*
     Dev part of bot/botfunctions.js
