@@ -28,13 +28,17 @@ let address;
 let name;
 
 //Creating List of respond data Object about transaction
-let req_res = [];
+let reqRes = []; 
 
 //Creating List of Subscribtion Object
 let subscriptions = [];
 
 //(Very-very-very) Simple validation 
 let validate;
+
+let jsonBase;
+
+let updates = [];
 //TODO: Create session for user
 
 //
@@ -46,6 +50,7 @@ function createRegExp(arg) {
 
 //Dev section
 
+//Bot logic
 bot.on('message', function(msg){
     const chat = msg.chat.id;
     const message = msg.text;
@@ -63,19 +68,18 @@ bot.on('message', function(msg){
     if(commandList.addressValidate.test(message)){
         request(api+message, function (err,resp, body) {
             if(!err && resp.statusCode == 200){
-
                 let info = JSON.parse(body);
                 let trans = info.txrefs;
                 
                 for (i in trans){
                     if (trans[i].tx_input_n == 0){
-                        req_res.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
+                        reqRes.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
                     }else{
-                        req_res.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
+                        reqRes.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
                     }
                 }
                 address = message;
-                console.log("Last trx:",req_res[0]);
+                console.log("Last trx:",reqRes[0]);
 
                 bot.sendMessage(chat, "Address valide!\n\nPlease input the name of your wallet subscription.");
                 //Turning on validation process
@@ -98,7 +102,7 @@ bot.on('message', function(msg){
                 subcriptions:{
                     name: name,
                     address: address,
-                    last: req_res[0]
+                    last: reqRes[0]
                 }
             }
             //Clearing usless data
@@ -122,7 +126,7 @@ bot.on('message', function(msg){
                subscriptions.push({
                    name: client.subcriptions.name,
                    address: client.subcriptions.address,
-                   last: req_res[0]
+                   last: reqRes[0]
                });
                
                obj = JSON.parse(data);
@@ -142,18 +146,16 @@ bot.on('message', function(msg){
                            obj.users[i].subcriptions.push({
                                name: client.subcriptions.name,
                                address: client.subcriptions.address,
-                               last: req_res[0]
+                               last: reqRes[0]
                            });
                        }
                    }
                    //Clearing usless data 
                    client = 'undefined';
-                   req_res = [];
+                   reqRes = [];
                    subscriptions = [];
-                   console.log("Client scheme:",client);
                }
                json = JSON.stringify(obj);
-               console.log(json);
                fs.writeFile('users.json', json, 'utf8');
            }
         });
@@ -161,6 +163,57 @@ bot.on('message', function(msg){
 });
 //TODO: Notification logic
 //Notification logic
+
+function requestData(){
+    fs.readFile('users.json', 'utf8', function readFileCallback(err, data) {
+        if (err){
+            console.log(err);
+        } else {
+            jsonBase = JSON.parse(data);
+            let update = {};
+
+            for (i in jsonBase.users){
+                console.log(jsonBase.users[i].firstName);//firstname
+                console.log(jsonBase.users[i].chatId);//chatId
+                update.chatId = jsonBase.users[i].chatId;//chatId
+                console.log(update.chatId);
+                for (j in jsonBase.users[i].subcriptions){
+                    console.log(jsonBase.users[i].subcriptions[j].name);//Name of your subscription
+                    update.subName = jsonBase.users[i].subcriptions[j].name
+                    console.log(updates.subName);
+                    console.log(jsonBase.users[i].subcriptions[j].address);//ETH address of your subscription
+                    update.address = jsonBase.users[i].subcriptions[j].address;
+                    console.log(update.address);
+                    console.log(jsonBase.users[i].subcriptions[j].last.date);
+                    update.lastTrx = jsonBase.users[i].subcriptions[j].last.date;
+                    console.log(update.lastTrx);
+                    console.log(jsonBase.users[i].subcriptions[j].last.incoming);
+                    update.trxType = jsonBase.users[i].subcriptions[j].last.incoming;
+                    console.log(update.trxType);
+                }
+            }
+            console.log(update);
+            // request(api+message, function (err,resp, body) {
+            //     if(!err && resp.statusCode == 200){
+            //         let info = JSON.parse(body);
+            //         let trans = info.txrefs;
+            //
+            //         for (i in trans){
+            //             if (trans[i].tx_input_n == 0){
+            //                 updates.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
+            //             }else{
+            //                 updates.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
+            //             }
+            //         }
+            //     } else {
+            //         console.error("Reading \''users.json'\' problems occured!");
+            //     }
+            // });
+        }
+    });
+}
+
+setInterval(requestData, 1500);
 
 // let json_data;
 // fs.readFile('users.json', 'utf8', function(readFileCallback(err, data)){
