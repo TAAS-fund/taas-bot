@@ -33,6 +33,8 @@ let req_res = [];
 //Creating List of Subscribtion Object
 let subscriptions = [];
 
+//(Very-very-very) Simple validation 
+let validate;
 //TODO: Create session for user
 
 //
@@ -46,16 +48,22 @@ function createRegExp(arg) {
 
 bot.on('message', function(msg){
     const chat = msg.chat.id;
-    const user = msg.chat.username;
+    const message = msg.text;
 
-    let message = msg.text;
+    console.log("Address of wallet:",address);
+    console.log("Name of subscription:",name);
+    console.log("Client scheme:",client);
+    console.log("Validation mark:", validate);
 
-    if(typeof msg.entities != "undefined" && commandList.start.test(message)) greetings(chat);
-    if(typeof msg.entities != "undefined" && commandList.create.test(message)) startNewSubscription(chat);
+    client = 'undefined';
+
+    if(typeof msg.entities != "undefined" && commandList.start.test(message)){greetings(chat);}
+    if(typeof msg.entities != "undefined" && commandList.create.test(message)){startNewSubscription(chat);}
     
     if(commandList.addressValidate.test(message)){
         request(api+message, function (err,resp, body) {
             if(!err && resp.statusCode == 200){
+
                 let info = JSON.parse(body);
                 let trans = info.txrefs;
                 
@@ -68,9 +76,8 @@ bot.on('message', function(msg){
                 }
 
                 address = message;
-
-                console.log(req_res[0]);
-                console.log(req_res[1]);
+                validate = true;
+                console.log("Last trx:",req_res[0]);
 
                 bot.sendMessage(chat, "Address valide!\n\nPlease input the name of your wallet subscription.");
             } else{
@@ -79,52 +86,47 @@ bot.on('message', function(msg){
         });
     }
 
-    if(typeof address != "undefined"){
+    if(typeof address != "undefined" && validate === true){
         const pattern = commandList.nameValidate;
-
         if(pattern.test(message)){
+
             name = message
-            bot.sendMessage(chat, "Name valide!");
             //bot.sendMessage(id, botDialog.nameApproved);
+            
+            client = {
+                firstName: msg.chat.last_name,
+                lastName: msg.chat.first_name,
+                chatId: chat,
+                subcriptions:{
+                    name: name,
+                    address: address,
+                    last: req_res[0]
+                }
+            }
+
+            address = 'undefined';
+            name = 'undefined';
         } else {
             bot.sendMessage(chat, "Name not valide, try again!");
             //bot.sendMessage(id, botDialog.nameDeclined);
         }
     }
     
-    if(typeof address != "undefined" && typeof name != "undefined"){
-
-        client = {
-            firstName: msg.chat.last_name,
-            lastName: msg.chat.first_name,
-            chatId: chat,
-            subcriptions:{
-                name: name,
-                address: address
-                last: req_res[0]
-            }
-        }
-
-        bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!");
-
-        subscriptions.push({
-            name: client.subcriptions.name,
-            address: client.subcriptions.address,
-            last: req_res[0]
-        });
-
-        console.log(subscriptions);
-
+    if(typeof client != "undefined" && validate == true){
+        validate = false;
         fs.readFile('users.json', 'utf8', function readFileCallback(err, data) {
            if(err){
-               
                console.log(err);
-               
            } else {
+               bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!");
+
+               subscriptions.push({
+                   name: client.subcriptions.name,
+                   address: client.subcriptions.address,
+                   last: req_res[0]
+               });
                
                obj = JSON.parse(data);
-
-               console.log(obj);
 
                if(typeof obj.users[0] == "undefined"){
                    obj.users.push({
@@ -133,6 +135,8 @@ bot.on('message', function(msg){
                        chatId: client.chatId,
                        subcriptions: subscriptions
                    });
+
+
                } else {
                    for(i in obj.users) {
                        if (obj.users[i].firstName == client.firstName && obj.users[i].chatId) {
@@ -143,16 +147,17 @@ bot.on('message', function(msg){
                            });
                        }
                    }
+                   console.log("Client scheme:",client);
                }
+
+               console.log("Last message that was inputed to the dialog:",message);
 
                json = JSON.stringify(obj);
                console.log(json);
                fs.writeFile('users.json', json, 'utf8');
-               
            }
         });
     }
-
 });
 //TODO: Notification logic
 //Notification logic
