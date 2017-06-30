@@ -215,22 +215,6 @@ function requestData(){
 
 setInterval(requestData, 1500);
 
-// let json_data;
-// fs.readFile('users.json', 'utf8', function(readFileCallback(err, data)){
-//     if (err){
-//         console.log(err);
-//     } else {
-//         json_data = JSON.parse(data);
-// });
-
-
-/*
-    Dev part of bot/botfunctions.js
-    All code below should be pasted to bot/* or other logic distribution by functionality
-    Or not
-    Decigion required
-*/
-
 //Greeting new user
 function greetings(id) {
     bot.sendMessage(id, botDialog.greetings);
