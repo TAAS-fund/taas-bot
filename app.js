@@ -20,25 +20,19 @@ const commandList = {
 
 //Creating Client --> should be represented as session
 let client;
-
 //Creating Address of Subscribtion
 let address;
-
 //Creating Name of Subscription
 let name;
-
 //Creating List of respond data Object about transaction
-let reqRes = []; 
-
+let reqRes = [];
 //Creating List of Subscribtion Object
 let subscriptions = [];
-
 //(Very-very-very) Simple validation 
 let validate;
 
 let jsonBase;
 
-let updates = [];
 //TODO: Create session for user
 
 //
@@ -73,15 +67,16 @@ bot.on('message', function(msg){
                 
                 for (i in trans){
                     if (trans[i].tx_input_n == 0){
-                        reqRes.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
+                        reqRes.push({date: new Date(trans[i].confirmed), value: trans[i].value/1000000000000000000, finalBalance: info.final_balance/1000000000000000000, incoming: false})
                     }else{
-                        reqRes.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
+                        reqRes.push({date: new Date(trans[i].confirmed), value: trans[i].value/1000000000000000000, finalBalance: info.final_balance/1000000000000000000, incoming: true})
                     }
                 }
                 address = message;
                 console.log("Last trx:",reqRes[0]);
 
                 bot.sendMessage(chat, "Address valide!\n\nPlease input the name of your wallet subscription.");
+                
                 //Turning on validation process
                 validate = true;
             } else{
@@ -116,12 +111,16 @@ bot.on('message', function(msg){
     
     //Structurizing && saving data
     if(typeof client != "undefined" && validate == true){
+        bot.sendMessage(client.chatId,
+            "Congrats, "+client.firstName+
+            "!\n\nName of wallet: "+client.subcriptions.name+
+            "\n\nAddress of wallet: "+client.subcriptions.address);
+
         fs.readFile('users.json', 'utf8', function readFileCallback(err, data) {
            validate = false;
            if(err){
                console.log(err);
            } else {
-               bot.sendMessage(client.chatId, "Congrats, "+client.firstName+"!\n\nName of wallet: "+client.subcriptions.name+"\n\nAddress of wallet: "+client.subcriptions.address+"\n\nKeep updated!");
                //Creating subscription list
                subscriptions.push({
                    name: client.subcriptions.name,
@@ -130,6 +129,13 @@ bot.on('message', function(msg){
                });
                
                obj = JSON.parse(data);
+
+               bot.sendMessage(client.chatId, 
+                   "Last trx:\n"+
+                   "Date: "+client.subcriptions.last.date+
+                   "\nValue: "+client.subcriptions.last.value+
+                   "\nIncoming: "+client.subcriptions.last.incoming+
+                   "\nFinal balance ETH: "+client.subcriptions.last.finalBalance);
 
                if(typeof obj.users[0] == "undefined"){
                    //Pushing new user and subscribtion 
@@ -161,6 +167,7 @@ bot.on('message', function(msg){
         });
     }
 });
+
 //TODO: Notification logic
 //Notification logic
 
@@ -170,66 +177,24 @@ function requestData(){
             console.log(err);
         } else {
             jsonBase = JSON.parse(data);
-            let update = {};
-
+            let base = {};
             for (i in jsonBase.users){
-                console.log(jsonBase.users[i].firstName);//firstname
-                console.log(jsonBase.users[i].chatId);//chatId
-                update.chatId = jsonBase.users[i].chatId;//chatId
-                console.log(update.chatId);
+                base.chatId = jsonBase.users[i].chatId;//chatId
                 for (j in jsonBase.users[i].subcriptions){
-                    console.log(jsonBase.users[i].subcriptions[j].name);//Name of your subscription
-                    update.subName = jsonBase.users[i].subcriptions[j].name
-                    console.log(updates.subName);
-                    console.log(jsonBase.users[i].subcriptions[j].address);//ETH address of your subscription
-                    update.address = jsonBase.users[i].subcriptions[j].address;
-                    console.log(update.address);
-                    console.log(jsonBase.users[i].subcriptions[j].last.date);
-                    update.lastTrx = jsonBase.users[i].subcriptions[j].last.date;
-                    console.log(update.lastTrx);
-                    console.log(jsonBase.users[i].subcriptions[j].last.incoming);
-                    update.trxType = jsonBase.users[i].subcriptions[j].last.incoming;
-                    console.log(update.trxType);
+                    base.address = jsonBase.users[i].subcriptions[j].address;
+                    base.value = jsonBase.users[i].subcriptions[j].last.value;
+                    base.lastTrx = new Date(jsonBase.users[i].subcriptions[j].last.date);
+                    base.trxType = jsonBase.users[i].subcriptions[j].last.incoming;
+                    console.log(base);
                 }
+                    base = {}
             }
-            console.log(update);
-            // request(api+message, function (err,resp, body) {
-            //     if(!err && resp.statusCode == 200){
-            //         let info = JSON.parse(body);
-            //         let trans = info.txrefs;
-            //
-            //         for (i in trans){
-            //             if (trans[i].tx_input_n == 0){
-            //                 updates.push({date: trans[i].confirmed, value: trans[i].value, incoming: true})
-            //             }else{
-            //                 updates.push({date: trans[i].confirmed, value: trans[i].value, incoming: false})
-            //             }
-            //         }
-            //     } else {
-            //         console.error("Reading \''users.json'\' problems occured!");
-            //     }
-            // });
+            console.log(base);
         }
     });
 }
 
-setInterval(requestData, 1500);
-
-// let json_data;
-// fs.readFile('users.json', 'utf8', function(readFileCallback(err, data)){
-//     if (err){
-//         console.log(err);
-//     } else {
-//         json_data = JSON.parse(data);
-// });
-
-
-/*
-    Dev part of bot/botfunctions.js
-    All code below should be pasted to bot/* or other logic distribution by functionality
-    Or not
-    Decigion required
-*/
+setInterval(requestData, 5000);
 
 //Greeting new user
 function greetings(id) {
