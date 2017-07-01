@@ -31,8 +31,6 @@ let subscriptions = [];
 //(Very-very-very) Simple validation 
 let validate;
 
-let jsonBase;
-
 //TODO: Create session for user
 
 //
@@ -89,7 +87,7 @@ bot.on('message', function(msg){
     if(typeof address != "undefined" && validate === true){
         const pattern = commandList.nameValidate;
         if(pattern.test(message)){
-            name = message
+            name = message;
             client = {
                 firstName: msg.chat.last_name,
                 lastName: msg.chat.first_name,
@@ -99,7 +97,7 @@ bot.on('message', function(msg){
                     address: address,
                     last: reqRes[0]
                 }
-            }
+            };
             //Clearing usless data
             address = 'undefined';
             name = 'undefined';
@@ -176,25 +174,33 @@ function requestData(){
         if (err){
             console.log(err);
         } else {
-            jsonBase = JSON.parse(data);
-            let base = {};
-            for (i in jsonBase.users){
-                base.chatId = jsonBase.users[i].chatId;//chatId
-                for (j in jsonBase.users[i].subcriptions){
-                    base.address = jsonBase.users[i].subcriptions[j].address;
-                    base.value = jsonBase.users[i].subcriptions[j].last.value;
-                    base.lastTrx = new Date(jsonBase.users[i].subcriptions[j].last.date);
-                    base.trxType = jsonBase.users[i].subcriptions[j].last.incoming;
-                    console.log(base);
+            let userData = JSON.parse(data);
+            for(i in userData.users){
+                for(j in userData.users[i].subcriptions){
+                    request(api+userData.users[i].subcriptions[j].address, function (err,resp, body) {
+                        if(!err && resp.statusCode == 200){
+                            let info = JSON.parse(body);
+                            let trans = info.txrefs;
+                            for (k in trans){
+                                if (trans[k].tx_input_n == 0){
+                                    console.log(trans[k].confirmed, trans[k].value/1000000000000000000, "false");
+                                    userData.users[i].subcriptions[j].last = {date: new Date(trans[k].confirmed), value: trans[k].value/1000000000000000000, finalBalance: info.final_balance/1000000000000000000, incoming: false}
+                                }else{
+                                    console.log(trans[k].confirmed, trans[k].value/1000000000000000000, "true");
+                                    userData.users[i].subcriptions[j].last = {date: new Date(trans[k].confirmed), value: trans[k].value/1000000000000000000, finalBalance: info.final_balance/1000000000000000000, incoming: true}
+                                }
+                            }
+                        } else {
+                            console.error("Error requestiong data:", err, resp.statusCode);
+                        }
+                    });
                 }
-                    base = {}
             }
-            console.log(base);
         }
     });
 }
 
-setInterval(requestData, 5000);
+setInterval(requestData, 50000);
 
 //Greeting new user
 function greetings(id) {
