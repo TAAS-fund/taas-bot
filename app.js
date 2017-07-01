@@ -196,6 +196,7 @@ function requestData(){
                     });
                 }
             }
+            //TODO:Saving data to JSON file && bot send messege with updates required
         }
     });
 }
